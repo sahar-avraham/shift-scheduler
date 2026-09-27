@@ -33,6 +33,9 @@ export default function App() {
                     <Route path="schedule"
                            element={<ProtectedRoute requireManager><ScheduleBuilderPage/></ProtectedRoute>}
                     />
+                    {/* Sends an address that matches no page back home, same as a page
+                        the user has no access to. */}
+                    <Route path="*" element={<Navigate to="/" replace/>}/>
                 </Route>
             </Routes>
         </AuthProvider>
