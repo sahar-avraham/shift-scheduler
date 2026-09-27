@@ -20,6 +20,7 @@ import com.shiftscheduler.web.ConflictException;
 import com.shiftscheduler.web.ResourceNotFoundException;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
@@ -67,7 +68,9 @@ public class AssignmentService {
 
     // Checks the rules first. Blocking ones refuse the assignment.
     // Overridable ones refuse it too, unless the request says override.
-    @Transactional
+    // Reads committed data on every query, so the checks after the week lock see
+    // what other requests have just saved.
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public AssignmentResponse create(AssignmentCreateRequest request) {
         Shift shift = shiftRepository.findById(request.shiftId())
                 .orElseThrow(() -> new ResourceNotFoundException(
@@ -76,6 +79,9 @@ public class AssignmentService {
         Schedule schedule = shift.getSchedule();
         guard.requireVersion(schedule, request.scheduleVersion());
         guard.requireStatus(schedule, ScheduleStatus.DRAFT, ScheduleStatus.PUBLISHED);
+
+        // Locks the week before the checks, so a change already running on it finishes first.
+        guard.markChanged(schedule);
 
         Employee employee = employeeRepository.findByIdAndActiveTrue(request.employeeId())
                 .orElseThrow(() -> new ResourceNotFoundException(
@@ -129,7 +135,6 @@ public class AssignmentService {
         assignment.setOverride(noSlot);
 
         Assignment saved = assignmentRepository.save(assignment);
-        guard.markChanged(schedule);
         recordChange(schedule, employee, shift, true);
 
         return toResponse(saved, warnings, applied);

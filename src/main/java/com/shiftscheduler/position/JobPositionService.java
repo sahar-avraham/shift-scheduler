@@ -86,7 +86,11 @@ public class JobPositionService {
     public void delete(Long id) {
         guard.requireNothingSolving();
 
-        JobPosition position = require(id);
+        // Locks the position first, so a change to one of its employees waits for the delete to finish.
+        JobPosition position = jobPositionRepository.lockById(id)
+                .filter(JobPosition::isActive)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Job position " + id + " not found"));
 
         // Locked read, so somebody being moved into this position finishes first.
         if (!employeeRepository.lockActiveByJobPosition(id).isEmpty()) {

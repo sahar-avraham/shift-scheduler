@@ -229,6 +229,10 @@ public class ScheduleService {
     // and the staffing is copied from the week before.
     @Transactional
     public ScheduleDetailResponse create(ScheduleCreateRequest request) {
+        // Locks the weeks first, so a shift type or position removed at the same
+        // moment is left out of the new week.
+        guard.requireNothingSolving();
+
         LocalDate weekStart = request.weekStart();
 
         if (weekStart.getDayOfWeek() != DayOfWeek.SUNDAY) {
@@ -305,7 +309,8 @@ public class ScheduleService {
     public ShiftResponse replaceRequirements(Long scheduleId,
                                              Long shiftId,
                                              ShiftRequirementsUpdateRequest request) {
-        Schedule schedule = guard.require(scheduleId);
+        // Locks the week first, so a position removed at the same moment is seen as removed.
+        Schedule schedule = guard.lock(scheduleId);
         guard.requireVersion(schedule, request.version());
         guard.requireStatus(schedule, ScheduleStatus.COLLECTING, ScheduleStatus.DRAFT);
 

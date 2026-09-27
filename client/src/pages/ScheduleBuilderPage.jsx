@@ -651,6 +651,10 @@ function messageForCreate(error) {
         return 'צריך להגדיר סוגי משמרת לפני שאפשר לפתוח שבוע'
     }
 
+    if (error.code === 'WRONG_STATUS') {
+        return 'לא ניתן לפתוח שבוע בזמן בניית סידור'
+    }
+
     if (error.status === 409) {
         return 'כבר קיים סידור לשבוע הזה'
     }

@@ -47,6 +47,13 @@ public class ScheduleGuard {
                 .orElseThrow(() -> new ResourceNotFoundException("Schedule " + id + " not found"));
     }
 
+    // Loads the week under a lock, or 404, so the checks after it see what a
+    // change already running on the week saved.
+    public Schedule lock(Long id) {
+        return scheduleRepository.lockById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Schedule " + id + " not found"));
+    }
+
     // Allows the action only in the statuses listed.
     // The message names the status the week is in and the ones that would
     // have worked, so the manager can tell what went wrong.

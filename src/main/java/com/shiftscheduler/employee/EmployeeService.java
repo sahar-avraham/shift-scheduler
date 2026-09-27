@@ -144,7 +144,12 @@ public class EmployeeService {
         // Their old job may have been retired while they were away. Bringing them
         // back onto it would leave an active employee doing a job no shift asks
         // for, so the manager has to give them a current one first.
-        if (!employee.getJobPosition().isActive()) {
+        // Reads the position under a lock, so one deleted at the same moment is seen as deleted.
+        boolean positionActive = jobPositionRepository.lockById(employee.getJobPosition().getId())
+                .map(JobPosition::isActive)
+                .orElse(false);
+
+        if (!positionActive) {
             throw new ValidationException(
                     "The job position '" + employee.getJobPosition().getName()
                             + "' is no longer in use. Give this employee a current one first.");
@@ -160,6 +165,9 @@ public class EmployeeService {
 
     @Transactional
     public void deactivate(Long id, Long version) {
+        // Locks the weeks first, so the assignments read below include one made at the same moment.
+        guard.requireNothingSolving();
+
         Employee employee = require(id);
         requireCurrentVersion(employee, version);
 
@@ -167,8 +175,6 @@ public class EmployeeService {
         if (!employee.isActive()) {
             return;
         }
-
-        guard.requireNothingSolving();
 
         if (employee.getRole() == Role.MANAGER) {
             guardLastManager(employee.getId());
@@ -218,9 +224,10 @@ public class EmployeeService {
                 .orElseThrow(() -> new ResourceNotFoundException("Employee " + id + " not found"));
     }
 
-    // Loads an active job position, or 404.
+    // Loads an active job position under a lock, or 404, so one deleted at the
+    // same moment is seen as deleted.
     private JobPosition requirePosition(Long id) {
-        return jobPositionRepository.findById(id)
+        return jobPositionRepository.lockById(id)
                 .filter(JobPosition::isActive)
                 .orElseThrow(() -> new ResourceNotFoundException("Job position " + id + " not found"));
     }

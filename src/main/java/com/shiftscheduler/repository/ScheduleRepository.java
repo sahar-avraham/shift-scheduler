@@ -36,4 +36,9 @@ public interface ScheduleRepository extends JpaRepository<Schedule, Long> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select s from Schedule s where s.status in (:statuses)")
     List<Schedule> lockByStatusIn(@Param("statuses") Collection<ScheduleStatus> statuses);
+
+    // Loads one week under a lock, so a change to it waits for any other change already running on it.
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select s from Schedule s where s.id = :id")
+    Optional<Schedule> lockById(@Param("id") Long id);
 }
