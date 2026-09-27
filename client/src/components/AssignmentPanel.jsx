@@ -51,6 +51,12 @@ export default function AssignmentPanel({ shift, coverage, scheduleVersion, onCh
     // A rejection carries the rules that were broken, so the dialog is built
     // from the response.
     function handleFailure(err) {
+        // Another manager changed the week since this screen loaded.
+        if (err.code === 'STALE_VERSION') {
+            onError('הסידור השתנה במקביל. רענן ונסה שוב')
+            return
+        }
+
         const body = err.body
 
         if (err.status !== 409 || !body?.overridable) {
@@ -75,8 +81,10 @@ export default function AssignmentPanel({ shift, coverage, scheduleVersion, onCh
         try {
             await api.delete(`/api/assignments/${assignmentId}?version=${scheduleVersion}`)
             onChanged()
-        } catch {
-            onError('ההסרה נכשלה')
+        } catch (err) {
+            onError(err.code === 'STALE_VERSION'
+                ? 'הסידור השתנה במקביל. רענן ונסה שוב'
+                : 'ההסרה נכשלה')
         } finally {
             setBusy(false)
         }
