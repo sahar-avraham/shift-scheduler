@@ -162,15 +162,14 @@ export default function ConstraintsPage() {
 
             await loadWeek(true)
         } catch (err) {
+            // 409 and 404 both mean someone else changed or removed a constraint
+            // since this screen loaded. Same as the other screens, the manager
+            // reloads by hand.
             setError(err.code === 'WRONG_STATUS'
                 ? 'תקופת הגשת האילוצים לשבוע זה נסגרה'
-                : err.status === 409
-                    ? 'האילוץ כבר קיים. רענן ונסה שוב'
+                : err.status === 409 || err.status === 404
+                    ? 'האילוצים שונו במקביל. רענן ונסה שוב'
                     : 'השמירה נכשלה')
-
-            // Part of the loop may have gone through before it stopped, so the
-            // grid is reloaded either way.
-            await loadWeek(true)
         } finally {
             setBusy(false)
         }
@@ -200,9 +199,10 @@ export default function ConstraintsPage() {
             }
 
             await loadWeek(true)
-        } catch {
-            setError('שמירת הסיבה נכשלה')
-            await loadWeek(true)
+        } catch (err) {
+            setError(err.status === 409 || err.status === 404
+                ? 'האילוצים שונו במקביל. רענן ונסה שוב'
+                : 'שמירת הסיבה נכשלה')
         } finally {
             setBusy(false)
         }
