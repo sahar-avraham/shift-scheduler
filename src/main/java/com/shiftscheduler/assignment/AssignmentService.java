@@ -74,8 +74,8 @@ public class AssignmentService {
                         "Shift " + request.shiftId() + " not found"));
 
         Schedule schedule = shift.getSchedule();
-        guard.requireStatus(schedule, ScheduleStatus.DRAFT, ScheduleStatus.PUBLISHED);
         guard.requireVersion(schedule, request.scheduleVersion());
+        guard.requireStatus(schedule, ScheduleStatus.DRAFT, ScheduleStatus.PUBLISHED);
 
         Employee employee = employeeRepository.findByIdAndActiveTrue(request.employeeId())
                 .orElseThrow(() -> new ResourceNotFoundException(
@@ -174,8 +174,8 @@ public class AssignmentService {
     @Transactional
     public void clearShifts(Long scheduleId, List<Long> shiftIds, Long version) {
         Schedule schedule = guard.require(scheduleId);
-        guard.requireStatus(schedule, ScheduleStatus.DRAFT);
         guard.requireVersion(schedule, version);
+        guard.requireStatus(schedule, ScheduleStatus.DRAFT);
 
         // Filtering by schedule as well as by shift
         clearAssignments(schedule,
@@ -186,8 +186,8 @@ public class AssignmentService {
     @Transactional
     public void clearAll(Long scheduleId, Long version) {
         Schedule schedule = guard.require(scheduleId);
-        guard.requireStatus(schedule, ScheduleStatus.DRAFT);
         guard.requireVersion(schedule, version);
+        guard.requireStatus(schedule, ScheduleStatus.DRAFT);
 
         clearAssignments(schedule,
                 assignmentRepository.
@@ -201,8 +201,8 @@ public class AssignmentService {
                 .orElseThrow(() -> new ResourceNotFoundException("Assignment " + id + " not found"));
 
         Schedule schedule = assignment.getShift().getSchedule();
-        guard.requireStatus(schedule, ScheduleStatus.DRAFT, ScheduleStatus.PUBLISHED);
         guard.requireVersion(schedule, version);
+        guard.requireStatus(schedule, ScheduleStatus.DRAFT, ScheduleStatus.PUBLISHED);
 
         clearAssignments(schedule, List.of(assignment));
     }

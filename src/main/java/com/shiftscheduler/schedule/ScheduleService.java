@@ -257,8 +257,8 @@ public class ScheduleService {
     @Transactional
     public ScheduleDetailResponse lock(Long id, VersionedRequest request) {
         Schedule schedule = guard.require(id);
-        guard.requireStatus(schedule, ScheduleStatus.COLLECTING);
         guard.requireVersion(schedule, request.version());
+        guard.requireStatus(schedule, ScheduleStatus.COLLECTING);
 
         schedule.setStatus(ScheduleStatus.DRAFT);
         guard.markChanged(schedule);
@@ -270,8 +270,8 @@ public class ScheduleService {
     @Transactional
     public ScheduleDetailResponse publish(Long id, VersionedRequest request) {
         Schedule schedule = guard.require(id);
-        guard.requireStatus(schedule, ScheduleStatus.DRAFT);
         guard.requireVersion(schedule, request.version());
+        guard.requireStatus(schedule, ScheduleStatus.DRAFT);
 
         schedule.setStatus(ScheduleStatus.PUBLISHED);
         guard.markChanged(schedule);
@@ -286,8 +286,8 @@ public class ScheduleService {
     @Transactional
     public ScheduleDetailResponse republish(Long id, VersionedRequest request) {
         Schedule schedule = guard.require(id);
-        guard.requireStatus(schedule, ScheduleStatus.PUBLISHED);
         guard.requireVersion(schedule, request.version());
+        guard.requireStatus(schedule, ScheduleStatus.PUBLISHED);
 
         if (rosterChangeRepository.countEmployeesByScheduleId(id) == 0) {
             throw new ConflictException("Nothing has changed since this week was published");
@@ -306,8 +306,8 @@ public class ScheduleService {
                                              Long shiftId,
                                              ShiftRequirementsUpdateRequest request) {
         Schedule schedule = guard.require(scheduleId);
-        guard.requireStatus(schedule, ScheduleStatus.COLLECTING, ScheduleStatus.DRAFT);
         guard.requireVersion(schedule, request.version());
+        guard.requireStatus(schedule, ScheduleStatus.COLLECTING, ScheduleStatus.DRAFT);
 
         Shift shift = shiftRepository.findById(shiftId)
                 .orElseThrow(() -> new ResourceNotFoundException("Shift " + shiftId + " not found"));
@@ -491,8 +491,8 @@ public class ScheduleService {
     // The manager setting the closing time himself.
     public ScheduleDetailResponse setSubmissionDeadline(Long id, DeadlineRequest request) {
         Schedule schedule = guard.require(id);
-        guard.requireStatus(schedule, ScheduleStatus.COLLECTING);
         guard.requireVersion(schedule, request.version());
+        guard.requireStatus(schedule, ScheduleStatus.COLLECTING);
 
         schedule.setSubmissionClosesAt(request.submissionClosesAt());
         guard.markChanged(schedule);
@@ -504,8 +504,8 @@ public class ScheduleService {
     @Transactional
     public void clearRequirements(Long scheduleId, List<Long> shiftIds, Long version) {
         Schedule schedule = guard.require(scheduleId);
-        guard.requireStatus(schedule, ScheduleStatus.COLLECTING, ScheduleStatus.DRAFT);
         guard.requireVersion(schedule, version);
+        guard.requireStatus(schedule, ScheduleStatus.COLLECTING, ScheduleStatus.DRAFT);
 
         requirementRepository.deleteByShiftIdInAndShiftScheduleId(shiftIds, scheduleId);
         guard.markChanged(schedule);

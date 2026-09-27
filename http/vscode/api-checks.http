@@ -417,7 +417,7 @@ GET http://localhost:8080/api/schedules/4
 POST http://localhost:8080/api/assignments
 Content-Type: application/json
 
-{"shiftId": 64, "employeeId": 3, "override": false, "scheduleVersion": 3}
+{"shiftId": 64, "employeeId": 3, "override": false, "scheduleVersion": 0}
 
 
 ### ----- 3.9 OPTIMISTIC LOCKING ON REQUIREMENTS -----

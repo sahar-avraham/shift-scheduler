@@ -503,7 +503,7 @@ POST http://localhost:8080/api/assignments
 Content-Type: application/json
 Cookie: access_token={{token}}
 
-{"shiftId": 64, "employeeId": 3, "override": false, "scheduleVersion": 3}
+{"shiftId": 64, "employeeId": 3, "override": false, "scheduleVersion": 0}
 
 
 ### ----- 3.9 OPTIMISTIC LOCKING ON REQUIREMENTS -----
