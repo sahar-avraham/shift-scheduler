@@ -326,9 +326,15 @@ function SelectionPanel({ shifts, busy, onType, onReason }) {
         shiftsRef.current = shifts
     }, [reason, shifts])
 
-    // The selected ids joined into a string. The two effects below depend on it,
-    // so they run when the selection changes and not on every render.
+    // The selected ids joined into a string. The save below depends on it,
+    // so it runs when the selection changes and not on every render.
     const selectionKey = shifts.map((shift) => shift.shiftId).join()
+
+    // Joins the ids with their saved reasons, so the field also follows a reason
+    // that was saved from another screen and came back with a reload.
+    const reasonKey = shifts
+        .map((shift) => `${shift.shiftId}:${shift.preferenceReason ?? ''}`)
+        .join()
 
     // Saved when the selection goes away - either the panel closes or a
     // different shift is picked. Keyed on the selection so moving from one
@@ -344,10 +350,11 @@ function SelectionPanel({ shifts, busy, onType, onReason }) {
         }
     }, [selectionKey])
 
-    // A new selection brings its own reason, so the field follows it.
+    // Refills the field when the selection changes or a reload brings a different
+    // saved reason, so closing the panel never writes an old reason back.
     useEffect(() => {
         setReason(sharedReason(shifts))
-    }, [selectionKey])
+    }, [reasonKey])
 
     const current = sharedType(shifts)
     const anyWithPreference = shifts.some((shift) => shift.preferenceId)
